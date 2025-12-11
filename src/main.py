@@ -14,10 +14,11 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
         logging.FileHandler(os.path.join(CONFIG.LOG_DIR, "debug.log")),
-        logging.StreamHandler()
-    ]
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
+
 
 class CurriculumGenerator:
     def __init__(self, config):
@@ -30,10 +31,11 @@ class CurriculumGenerator:
         try:
             # Initialize OpenAI Client pointing to Cerebras
             self.client = openai.OpenAI(
-                base_url=config.BASE_URL,
-                api_key=config.CEREBRAS_API_KEY
+                base_url=config.BASE_URL, api_key=config.CEREBRAS_API_KEY
             )
-            logger.info(f"✅ Cerebras (OpenAI) Client Initialized. Key: {config.CEREBRAS_API_KEY[:4]}...****")
+            logger.info(
+                f"✅ Cerebras (OpenAI) Client Initialized. Key: {config.CEREBRAS_API_KEY[:4]}...****"
+            )
         except Exception as e:
             logger.critical(f"❌ Failed to initialize Client: {e}")
             raise
@@ -71,8 +73,10 @@ class CurriculumGenerator:
         logger.info("🧪 Testing Cerebras Connection...")
         try:
             self.client.chat.completions.create(
-                model=self.config.MODELS[-1], # Use smallest model for test
-                messages=[{"role": "user", "content": "Echo: System Operational."}],
+                model=self.config.MODELS[-1],  # Use smallest model for test
+                messages=[
+                    {"role": "user", "content": "Echo: System Operational."}
+                ],
             )
             logger.info("✅ Connection Verified! Starting Engine...")
         except Exception as e:
@@ -87,10 +91,13 @@ class CurriculumGenerator:
                 response = self.client.chat.completions.create(
                     model=model_name,
                     messages=[
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": query}
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant.",
+                        },
+                        {"role": "user", "content": query},
                     ],
-                    max_tokens=self.config.MAX_TOKENS
+                    max_tokens=self.config.MAX_TOKENS,
                 )
 
                 content = response.choices[0].message.content.strip()
@@ -105,11 +112,15 @@ class CurriculumGenerator:
                 err_msg = str(e)
                 # Handle Rate Limits
                 if "429" in err_msg:
-                    logger.warning(f"⏳ Rate Limit (429) on {model_name}. Cooling down...")
+                    logger.warning(
+                        f"⏳ Rate Limit (429) on {model_name}. Cooling down..."
+                    )
                     time.sleep(1)
                 # Handle Auth/Server Errors
                 elif "401" in err_msg or "403" in err_msg:
-                    logger.critical(f"⛔ Auth Error on {model_name}: Check Key!")
+                    logger.critical(
+                        f"⛔ Auth Error on {model_name}: Check Key!"
+                    )
                     return None
                 else:
                     logger.error(f"💥 Error on {model_name}: {err_msg}")
@@ -140,7 +151,7 @@ class CurriculumGenerator:
 
         if content:
             os.makedirs(folder_path, exist_ok=True)
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 f.write(content)
             return {"topic": topic, "status": "GENERATED"}
         else:
@@ -148,10 +159,14 @@ class CurriculumGenerator:
 
     def run_parallel_generation(self):
         topic_list = self.config.get_full_topic_list()
-        logger.info(f"🚀 ENGINE START: {len(topic_list)} Topics | {self.config.MAX_WORKERS} Workers")
+        logger.info(
+            f"🚀 ENGINE START: {len(topic_list)} Topics | {self.config.MAX_WORKERS} Workers"
+        )
 
         results = []
-        with ThreadPoolExecutor(max_workers=self.config.MAX_WORKERS) as executor:
+        with ThreadPoolExecutor(
+            max_workers=self.config.MAX_WORKERS
+        ) as executor:
             future_to_topic = {
                 executor.submit(self.generate_and_cache_topic, t): t
                 for t in topic_list
@@ -161,13 +176,16 @@ class CurriculumGenerator:
                 res = future.result()
                 results.append(res)
 
-                if res['status'] == "GENERATED":
+                if res["status"] == "GENERATED":
                     logger.info(f"🔹 Generated: {res['topic'][:40]}")
-                elif res['status'] == "FAILED":
+                elif res["status"] == "FAILED":
                     logger.error(f"🔻 Failed: {res['topic'][:40]}")
 
-        success = sum(1 for r in results if r['status'] in ['GENERATED', 'SKIPPED'])
+        success = sum(
+            1 for r in results if r["status"] in ["GENERATED", "SKIPPED"]
+        )
         logger.info(f"✅ COMPLETE. Success: {success}/{len(results)}")
+
 
 if __name__ == "__main__":
     if not os.path.exists(CONFIG.CACHE_DIR):

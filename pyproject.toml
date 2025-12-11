@@ -1,12 +1,14 @@
 [project]
 name = "universal-mentor-nexus-architect"
-version = "2026.1.3"
-description = "High-Velocity Curriculum Generator (Cerebras/OpenAI Edition)"
+version = "2026.1.4"
+description = "High-Velocity Curriculum Generator (PDF Edition)"
 requires-python = ">=3.11"
 dependencies = [
     "openai",
     "pydantic",
-    "python-dotenv"
+    "python-dotenv",
+    "markdown",
+    "weasyprint"
 ]
 
 [dependency-groups]
