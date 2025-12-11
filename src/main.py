@@ -24,12 +24,10 @@ class CurriculumGenerator:
     def __init__(self, config):
         self.config = config
 
-        # 1. Validate API Key
         if not config.GEMINI_API_KEY:
             logger.critical("❌ GEMINI_API_KEY is missing! Check .env file.")
             raise ValueError("API Key missing.")
 
-        # 2. Initialize Client
         try:
             self.client = genai.Client(api_key=config.GEMINI_API_KEY)
             logger.info(f"✅ Client Initialized. Key: {config.GEMINI_API_KEY[:4]}...****")
@@ -40,35 +38,43 @@ class CurriculumGenerator:
         self.master_prompt = ""
         self.load_master_prompt()
 
-        # 3. Connection Test
+        # Connection Test
         self.test_api_connection()
 
     def load_master_prompt(self):
-        # The "Book of Everything" Prompt
+        # --- THE MASHUP PROMPT: POLYMATH DEPTH + AUDIOBOOK FLOW ---
         self.master_prompt = (
-            "You are writing a chapter for **'The Book of Everything'**, written specifically "
-            "for a **High-Agency Polymath** (Software Engineer/Entrepreneur). "
-            "INSTRUCTIONS:\n"
-            "1. **FIRST PRINCIPLES:** Define the topic at its atomic level.\n"
-            "2. **DEEP DIVE:** Explain the mechanics, math, and logic rigorously.\n"
-            "3. **SYSTEMS VIEW:** Connect this topic to other fields (Business/Biology/Code).\n"
-            "4. **FORMAT:** Dense, narrative paragraphs optimized for Audio Learning. No fluff.\n\n"
-            "TOPIC TO TEACH:\n"
+            "You are an **Expert Technical Audiobook Writer** and **Universal Polymath Tutor**. "
+            "Your goal is to write a chapter for **'The Book of Everything'** specifically designed "
+            "to be **listened to** via Text-to-Speech (Moon Reader Pro). The listener is a "
+            "High-Agency Software Engineer/Entrepreneur aiming for Nobel-level mastery.\n\n"
+            "### CORE INSTRUCTIONS (AUDIO OPTIMIZATION):\n"
+            "1. **NARRATIVE FLOW (CRITICAL):** Write as a continuous, engaging narrative. **DO NOT use bullet points, "
+            "numbered lists, or markdown tables**, as these sound terrible in TTS. Use full, rhythmic sentences.\n"
+            "2. **DESCRIBE, DON'T DISPLAY:** Never output raw code blocks, SQL queries, or mathematical notation verbatim. "
+            "Instead, describe the logic in natural English (e.g., instead of 'print(x)', write 'The system outputs the variable x...').\n"
+            "3. **VISUALIZATION:** If explaining a diagram or formula, describe it vividly so the listener can visualize it mentally.\n"
+            "4. **NO FILLER:** Do not use phrases like 'Here is the chapter' or 'In this section'. Jump straight into the knowledge.\n\n"
+            "### CONTENT REQUIREMENTS (POLYMATH DEPTH):\n"
+            "1. **FIRST PRINCIPLES:** Start by defining the topic at its atomic, fundamental level. What is the absolute truth here?\n"
+            "2. **THE DEEP DIVE:** Explain the mechanics rigorously. If it's Math/AI, explain the logic flow. If Business, explain the unit economics. "
+            "Make it dense but speakable.\n"
+            "3. **SYSTEMS VIEW:** Connect this topic to other fields (e.g., connect Biology to Engineering, or History to Economics).\n\n"
+            "**TOPIC TO TEACH:**\n"
         )
 
     def test_api_connection(self):
         """Runs a single cheap request to verify auth/quota."""
         logger.info("🧪 Testing API Connection with 1 request...")
         try:
+            # Using 1.5-flash for the test as it is the most stable current model
             self.client.models.generate_content(
-                model=self.config.GEMINI_MODELS[5],
-                contents="Hello, echo 'Connection Successful'.",
+                model="gemini-2.5-flash-preview-09-2025",
+                contents="Echo: System Operational.",
             )
             logger.info("✅ Connection Verified! Starting Engine...")
         except Exception as e:
             logger.critical(f"❌ CONNECTION TEST FAILED: {e}")
-            logger.critical("   -> Check your API Key.")
-            logger.critical("   -> Check if you have Billing enabled in Google Cloud Console.")
             raise ConnectionError("API Test Failed")
 
     def _call_gemini_with_fallback(self, query: str) -> str:
@@ -81,7 +87,6 @@ class CurriculumGenerator:
                     config={"max_output_tokens": self.config.MAX_TOKENS}
                 )
 
-                # Validation check
                 if not response.text:
                     logger.warning(f"⚠️  Empty response from {model_name}")
                     continue
@@ -96,16 +101,15 @@ class CurriculumGenerator:
                 elif "404" in err_msg:
                     logger.error(f"🚫 Model Not Found (404): {model_name}")
                 elif "401" in err_msg or "403" in err_msg:
-                    logger.critical(f"⛔ Auth Error (401/403) on {model_name}: Check Key/Permissions!")
-                    return None # Fatal
+                    logger.critical(f"⛔ Auth Error (401/403) on {model_name}: Check Key!")
+                    return None
                 else:
                     logger.error(f"💥 Error on {model_name}: {err_msg}")
 
-        return None # Failed all models
+        return None
 
     def generate_and_cache_topic(self, full_topic_path: str) -> dict:
         try:
-            # Parse path
             path_part, topic_part = full_topic_path.split(":", 1)
             broad_cat, sub_cat = path_part.split("/", 1)
             topic = topic_part.strip()
@@ -149,7 +153,6 @@ class CurriculumGenerator:
                 res = future.result()
                 results.append(res)
 
-                # Log status
                 if res['status'] == "GENERATED":
                     logger.info(f"🔹 Generated: {res['topic'][:40]}")
                 elif res['status'] == "FAILED":
@@ -159,9 +162,10 @@ class CurriculumGenerator:
         logger.info(f"✅ COMPLETE. Success: {success}/{len(results)}")
 
 if __name__ == "__main__":
-    # Ensure dirs exist
-    os.makedirs(CONFIG.CACHE_DIR, exist_ok=True)
-    os.makedirs(CONFIG.LOG_DIR, exist_ok=True)
+    if not os.path.exists(CONFIG.CACHE_DIR):
+        os.makedirs(CONFIG.CACHE_DIR, exist_ok=True)
+    if not os.path.exists(CONFIG.LOG_DIR):
+        os.makedirs(CONFIG.LOG_DIR, exist_ok=True)
 
     generator = CurriculumGenerator(CONFIG)
     generator.run_parallel_generation()

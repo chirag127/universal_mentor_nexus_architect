@@ -3,32 +3,40 @@ from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import List, Dict
 
-# Apex Mandate: Load environment variables immediately
+# Load environment variables
 load_dotenv()
 
 class AppConfig(BaseModel):
-    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "YOUR_FALLBACK_KEY")
+    # Key from cloud.cerebras.ai
+    CEREBRAS_API_KEY: str = os.getenv("CEREBRAS_API_KEY")
 
-    # --- Waterfall Model Selection (Tiered Fallback) ---
-    GEMINI_MODELS: List[str] = [
-        "gemini-3-pro-preview",
-        "gemini-2.5-pro",        "gemini-2.5-flash-preview-09-2025",
-
-        "gemini-2.5-flash",
-                "gemini-2.5-flash-lite-preview-09-2025",
-
-        "gemini-2.5-flash-lite",
-        "gemini-2.0-flash",
-        "gemini-2.0-flash-001",
-        "gemini-2.0-flash-lite",
-        "gemini-2.0-flash-lite-001",
+    # CEREBRAS BASE URL
+    BASE_URL: str = "https://api.cerebras.ai/v1"
+# Size,Model ID,Model Name
+# 8B,llama3.1-8b,Llama 3.1 8B
+# 32B,qwen-3-32b,Qwen 3 32B
+# 70B,llama-3.3-70b,Llama 3.3 70B
+# 120B,gpt-oss-120b,OpenAI GPT OSS
+# 235B,qwen-3-235b-a22b-instruct-2507,Qwen 3 235B Instruct
+# 357B,zai-glm-4.6,Z.ai GLM 4.6
+    # --- CEREBRAS MODELS ---
+    MODELS: List[str] = [
+        "zai-glm-4.6",
+        "qwen-3-235b-a22b-instruct-2507",
+        "gpt-oss-120b",
+        "llama-3.3-70b",
+        "qwen-3-32b",
+        "llama3.1-8b"
     ]
-    LOG_DIR: str = "logs"
-    CACHE_DIR: str = "data/cache"
-    MAX_TOKENS: int = 64000
 
-    # Apex Mandate: Concurrency set to 100 for high-velocity I/O
-    MAX_WORKERS: int = 10
+    CACHE_DIR: str = "data/cache"
+    LOG_DIR: str = "logs"
+
+    # Cerebras Context Window
+    MAX_TOKENS: int = 4096
+
+    # High concurrency for speed (Cerebras is fast!)
+    MAX_WORKERS: int = 20
 
     # --- 3-Layer Subject Structure (Broad -> Sub -> Topics) ---
     # This structure covers your Wealth, AI Nobel, and Life goals.
@@ -163,8 +171,8 @@ class AppConfig(BaseModel):
         for broad, sub_dict in self.SUBJECT_STRUCTURE.items():
             for sub, topics in sub_dict.items():
                 if not topics:
-                    for i in range(1, 6):
-                        full_list.append(f"{broad}/{sub}: {sub.replace('_', ' ')} Topic {i}")
+                    for i in range(1, 4):
+                        full_list.append(f"{broad}/{sub}: Topic {i}")
                 else:
                     for topic in topics:
                         full_list.append(f"{broad}/{sub}: {topic}")
