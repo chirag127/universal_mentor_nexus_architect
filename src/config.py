@@ -23,7 +23,7 @@ class AppConfig(BaseModel):
         "gemini-2.0-flash-lite",
         "gemini-2.0-flash-lite-001",
     ]
-
+    LOG_DIR: str = "logs"
     CACHE_DIR: str = "data/cache"
     MAX_TOKENS: int = 64000
 
