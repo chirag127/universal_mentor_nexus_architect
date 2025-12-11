@@ -1,9 +1,8 @@
 import os
 import time
 import logging
+import openai
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from google import genai
-from google.genai.errors import APIError
 from config import CONFIG
 
 # --- SETUP LOGGING ---
@@ -24,13 +23,17 @@ class CurriculumGenerator:
     def __init__(self, config):
         self.config = config
 
-        if not config.GEMINI_API_KEY:
-            logger.critical("❌ GEMINI_API_KEY is missing! Check .env file.")
+        if not config.CEREBRAS_API_KEY:
+            logger.critical("❌ CEREBRAS_API_KEY is missing! Check .env file.")
             raise ValueError("API Key missing.")
 
         try:
-            self.client = genai.Client(api_key=config.GEMINI_API_KEY)
-            logger.info(f"✅ Client Initialized. Key: {config.GEMINI_API_KEY[:4]}...****")
+            # Initialize OpenAI Client pointing to Cerebras
+            self.client = openai.OpenAI(
+                base_url=config.BASE_URL,
+                api_key=config.CEREBRAS_API_KEY
+            )
+            logger.info(f"✅ Cerebras (OpenAI) Client Initialized. Key: {config.CEREBRAS_API_KEY[:4]}...****")
         except Exception as e:
             logger.critical(f"❌ Failed to initialize Client: {e}")
             raise
@@ -42,7 +45,7 @@ class CurriculumGenerator:
         self.test_api_connection()
 
     def load_master_prompt(self):
-        # --- THE MASHUP PROMPT: POLYMATH DEPTH + AUDIOBOOK FLOW ---
+        # --- THE AUDIOBOOK PROMPT ---
         self.master_prompt = (
             "You are an **Expert Technical Audiobook Writer** and **Universal Polymath Tutor**. "
             "Your goal is to write a chapter for **'The Book of Everything'** specifically designed "
@@ -65,43 +68,48 @@ class CurriculumGenerator:
 
     def test_api_connection(self):
         """Runs a single cheap request to verify auth/quota."""
-        logger.info("🧪 Testing API Connection with 1 request...")
+        logger.info("🧪 Testing Cerebras Connection...")
         try:
-            # Using 1.5-flash for the test as it is the most stable current model
-            self.client.models.generate_content(
-                model="gemini-2.5-flash-preview-09-2025",
-                contents="Echo: System Operational.",
+            self.client.chat.completions.create(
+                model=self.config.MODELS[-1], # Use smallest model for test
+                messages=[{"role": "user", "content": "Echo: System Operational."}],
             )
             logger.info("✅ Connection Verified! Starting Engine...")
         except Exception as e:
             logger.critical(f"❌ CONNECTION TEST FAILED: {e}")
             raise ConnectionError("API Test Failed")
 
-    def _call_gemini_with_fallback(self, query: str) -> str:
-        """Waterfall Model Cascade with detailed error logging."""
-        for model_name in self.config.GEMINI_MODELS:
+    def _call_cerebras_with_fallback(self, query: str) -> str:
+        """Waterfall Model Cascade for Cerebras."""
+        for model_name in self.config.MODELS:
             try:
-                response = self.client.models.generate_content(
+                # OpenAI-Style Call
+                response = self.client.chat.completions.create(
                     model=model_name,
-                    contents=query,
-                    config={"max_output_tokens": self.config.MAX_TOKENS}
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": query}
+                    ],
+                    max_tokens=self.config.MAX_TOKENS
                 )
 
-                if not response.text:
+                content = response.choices[0].message.content.strip()
+
+                if not content:
                     logger.warning(f"⚠️  Empty response from {model_name}")
                     continue
 
-                return response.text.strip()
+                return content
 
             except Exception as e:
                 err_msg = str(e)
+                # Handle Rate Limits
                 if "429" in err_msg:
                     logger.warning(f"⏳ Rate Limit (429) on {model_name}. Cooling down...")
-                    time.sleep(2)
-                elif "404" in err_msg:
-                    logger.error(f"🚫 Model Not Found (404): {model_name}")
+                    time.sleep(1)
+                # Handle Auth/Server Errors
                 elif "401" in err_msg or "403" in err_msg:
-                    logger.critical(f"⛔ Auth Error (401/403) on {model_name}: Check Key!")
+                    logger.critical(f"⛔ Auth Error on {model_name}: Check Key!")
                     return None
                 else:
                     logger.error(f"💥 Error on {model_name}: {err_msg}")
@@ -128,7 +136,7 @@ class CurriculumGenerator:
 
         # Generate
         full_query = self.master_prompt + topic
-        content = self._call_gemini_with_fallback(full_query)
+        content = self._call_cerebras_with_fallback(full_query)
 
         if content:
             os.makedirs(folder_path, exist_ok=True)

@@ -63,7 +63,7 @@ class AppConfig(BaseModel):
         "04_CS_FOUNDATIONS": {
             "Architecture": ["Von Neumann Architecture", "CPU Caching", "Bitwise Operations", "Memory Management", "Assembly Basics"],
             "OS_Networking": ["Kernel Design", "Process Scheduling", "TCP_IP Stack", "HTTP_HTTPS Protocols", "Distributed Systems"],
-            "Algorithms": ["Big O Notation", "Sorting & Searching", "Graph Algorithms (Dijkstra/A*)", "Dynamic Programming", "Hashing"],
+            "Algorithms": ["Big O Notation", "Sorting & Searching", "Graph Algorithms (Dijkstra)", "Dynamic Programming", "Hashing"],
         },
         "05_SOFTWARE_ENGINEERING": {
             "Languages": ["Python Advanced Patterns", "C++ Memory Model", "Rust Ownership", "JavaScript Engines", "TypeScript Types"],
