@@ -1,0 +1,17 @@
+# Speed Reading Science
+
+## Summary
+
+Speed reading is a collection of techniques and cognitive strategies aimed at increasing reading comprehension and efficiency. It fundamentally challenges the subvocalization habit – the internal "sounding out" of words – which limits reading speed to the pace of speech. Key scientific principles include expanding peripheral vision to take in multiple words at once (chunking), reducing fixations (pauses on words), and utilizing regression prevention (avoiding rereading sentences unnecessarily). Neurologically, speed reading leverages the brain's ability to process visual information in parallel and to recognize patterns and concepts holistically, rather than sequentially word-by-word. Research indicates that with practice, significant improvements in reading speed (often doubling or tripling) are achievable without a substantial loss in comprehension, and sometimes even with an improvement due to increased focus and engagement.
+
+## Importance (Chirag Context)
+
+For Chirag Singhal, mastering speed reading is foundational for achieving **Fastest Wealth** and **Universal Mastery**, and ultimately, a Nobel Prize. At **LEVEL 0** technical skill, the sheer volume of knowledge required across AI, Computational Economics, and business strategy is immense. Speed reading allows for exponential knowledge acquisition from books, research papers, and industry reports. This rapid learning curve is critical for quickly identifying lucrative investment opportunities in the 3Cr Cattle Feed business and 100-gaj Real Estate plots, enabling faster strategic decision-making and execution. Moreover, to compete and innovate at a Nobel Prize level in AI/Computational Economics, one must digest and synthesize vast amounts of cutting-edge research, a feat impossible without highly efficient reading capabilities.
+
+## Actionable Steps
+
+1.  **Track Current Baseline:** Before any intervention, read a chapter of a complex non-fiction book (e.g., a textbook on AI or economics) at your normal pace. Time yourself and note down the number of words read and your comprehension level (e.g., by answering specific questions about the chapter). This provides your starting point.
+2.  **Peripheral Vision Expansion (Chunking):** Practice "seeing" groups of words rather than individual words. Start by focusing on a point slightly above and between words. Consciously try to perceive 2-3 words at a time in your peripheral vision. Use a finger or pointer to guide your eyes smoothly across the line, encouraging your eyes to move in larger leaps.
+3.  **Subvocalization Reduction Exercises:** Play audio recordings of fast-paced music or white noise while reading. This can help drown out the internal monologue. Alternatively, chew gum or hum softly while reading, creating a physical distraction that hinders subvocalization. Focus on understanding the *meaning* and *concepts* directly, rather than the sound of the words.
+4.  **Regression Prevention Technique:** Place a finger or pen approximately one line below where you are reading. Use this to physically sweep down the page, forcing your eyes to move forward and preventing the urge to look back at previously read sentences. Make the sweep smooth and consistent.
+5.  **Active Reading and Questioning:** Before and during reading, formulate questions about the material. This shifts your brain from passive consumption to active information retrieval, improving focus and comprehension. As you read, look for answers to your questions.
